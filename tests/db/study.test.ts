@@ -137,7 +137,8 @@ describe('완료 기준: 문제 생성 → 10문제 풀기 → 다음 날 복습
     const { rows: summary } = await asService(db, () =>
       db.query('select public.complete_review_set($1, $2) as r', [student, sessionId]),
     );
-    expect(summary[0].r).toMatchObject({ total: 10, correct: 7, overconfident: 1, events: ['set.complete'] });
+    expect(summary[0].r).toMatchObject({ total: 10, correct: 7, overconfident: 1 });
+    expect(summary[0].r.events).toContain('set.complete');
 
     // 오늘: 틀린 3문제는 1일 뒤라 다시 나오고, 맞힌(Good) 7문제는 3일 뒤라 아직 안 나온다
     const { rows: due } = await asUser(db, student, () =>
@@ -193,7 +194,7 @@ describe('채점과 오답노트', () => {
     const [again] = await sessionQuestions(other, wrongSession!);
     expect(again!.id).toBe(q!.id);
     const fixed = await submit(other, wrongSession, again!, rightAnswer(again!.type, again!.answer), 'maybe', now, again!.type === 'essay' ? { score: 1 } : null);
-    expect(fixed.events).toEqual(['review.correct', 'wrong.overconfident_fixed', 'set.answered']);
+    expect(fixed.events).toEqual(expect.arrayContaining(['review.correct', 'wrong.overconfident_fixed', 'set.answered']));
     const { rows: s2 } = await asUser(db, other, () =>
       db.query('select in_wrong_note, overconfident from public.card_states where question_id = $1', [q!.id]),
     );

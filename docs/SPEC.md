@@ -709,9 +709,9 @@ JSON만 출력: {"concepts":[...],"questions":[{"type":"mcq","concept":"","promp
 
 ### 3단계: 게임 시스템
 
-- [ ] game_config 테이블과 seed, 설정 캐시
-- [ ] XP·별조각 원장과 지급 함수, 일일 상한, 레벨 계산, events 반환
-- [ ] 스트릭과 보호권, daily_rollover 크론, 시험 D-day
+- [x] game_config 테이블과 seed, 설정 캐시
+- [x] XP·별조각 원장과 지급 함수, 일일 상한, 레벨 계산, events 반환
+- [x] 스트릭과 보호권, daily_rollover 크론, 시험 D-day
 - 완료 기준: 설정값을 DB에서 바꾸면 보상이 바로 바뀜, 상한 초과 지급 안 됨 테스트
 
 ### 4단계: 픽셀 렌더러와 애니메이션 엔진

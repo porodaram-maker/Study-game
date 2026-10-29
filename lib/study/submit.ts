@@ -13,8 +13,11 @@ export type SubmitResult = {
   explanation: string;
   due: string;
   events: string[];
+  rewards: Rewards;
   essay?: { score: number; missingKeywords: string[]; questions: string[] };
 };
+
+export type Rewards = { xp: number; stars: number; level_up: boolean; level?: number };
 
 export class SubmitError extends Error {
   constructor(
@@ -119,8 +122,18 @@ export async function submitAnswer(userId: string, req: SubmitRequest, opts: { a
       explanation: string;
       due: string;
       events: string[];
+      rewards: Rewards;
     };
-    return { attemptId: r.attempt_id, correct: r.correct, answer: r.answer, explanation: r.explanation, due: r.due, events: r.events, essay };
+    return {
+      attemptId: r.attempt_id,
+      correct: r.correct,
+      answer: r.answer,
+      explanation: r.explanation,
+      due: r.due,
+      events: r.events,
+      rewards: r.rewards,
+      essay,
+    };
   }
   throw new SubmitError('conflict', '잠시 후 다시 시도해 주세요');
 }

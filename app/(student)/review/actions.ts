@@ -35,7 +35,7 @@ export async function submitAnswerAction(input: unknown): Promise<Result<SubmitR
   }
 }
 
-export type SetSummary = { total: number; correct: number; overconfident: number; events: string[] };
+export type SetSummary = { total: number; correct: number; overconfident: number; stars: number; streak: number; events: string[] };
 
 export async function finishSet(sessionId: string): Promise<Result<SetSummary>> {
   const me = await requireProfile();

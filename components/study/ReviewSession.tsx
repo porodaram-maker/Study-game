@@ -6,6 +6,7 @@ import { JellyButton, JellyLink } from '@/components/ui/JellyButton';
 import { StickerCard } from '@/components/ui/StickerCard';
 import { ProgressCapsule } from '@/components/ui/ProgressCapsule';
 import { FormMessage } from '@/components/ui/FormMessage';
+import { StatChip } from '@/components/ui/StatChip';
 import { MISTAKE_LABELS, MISTAKE_TYPES, type Confidence, type MistakeType } from '@/lib/study/schemas';
 import type { SubmitResult } from '@/lib/study/submit';
 import { ConfidencePicker } from './ConfidencePicker';
@@ -83,6 +84,12 @@ export function ReviewSession({ sessionId, questions, answeredIds }: Props) {
             <p className="font-pixel text-2xl">
               {summary.correct} / {summary.total}
             </p>
+            <div className="flex flex-wrap justify-center gap-2">
+              {summary.stars > 0 ? <StatChip label="별조각" value={`+${summary.stars}`} tone="butter" /> : null}
+              {summary.events.includes('streak.up') ? <StatChip label="스트릭" value={`${summary.streak}일`} tone="peach" /> : null}
+            </div>
+            {summary.events.includes('streak.freeze_used') ? <p className="text-sm">보호권을 써서 스트릭을 지켰어요.</p> : null}
+            {summary.events.includes('streak.milestone') ? <p className="text-sm">스트릭 {summary.streak}일 달성! 보너스 별조각을 받았어요.</p> : null}
             <p className="text-sm text-ink-soft">
               {summary.overconfident > 0
                 ? `확실했는데 틀린 문제가 ${summary.overconfident}개 있어요. 오답노트에서 다시 풀어 봐요.`
@@ -142,7 +149,12 @@ export function ReviewSession({ sessionId, questions, answeredIds }: Props) {
               {result.correct ? '○' : '✕'}
             </span>
             {result.correct ? '맞았어요!' : '아쉬워요'}
+            <span className="ml-auto flex gap-1">
+              {result.rewards.xp > 0 ? <StatChip label="XP" value={`+${result.rewards.xp}`} tone="jelly" /> : null}
+              {result.rewards.stars > 0 ? <StatChip label="별조각" value={`+${result.rewards.stars}`} tone="butter" /> : null}
+            </span>
           </p>
+          {result.rewards.level_up ? <p className="font-title text-base">레벨 {result.rewards.level} 달성!</p> : null}
           {!result.correct && question.type !== 'essay' ? (
             <p className="text-sm">
               정답: <strong>{describeAnswer(question, result.answer)}</strong>
