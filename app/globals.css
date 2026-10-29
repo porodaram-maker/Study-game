@@ -1,0 +1,91 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* SPEC 15.1 색 토큰 (RGB 채널) */
+:root {
+  --bg: 243 240 255;
+  --surface: 255 255 255;
+  --ink: 58 46 92;
+  --ink-soft: 117 105 154;
+  --jelly: 139 123 255;
+  --pink: 255 143 184;
+  --danger: 255 107 122;
+  /* 파스텔 버튼 위 글자: 라이트 ink를 두 모드에서 그대로 쓴다 (15.1 "글자는 항상 ink 계열") */
+  --on-pastel: 58 46 92;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg: 30 26 51;
+    --surface: 42 37 71;
+    --ink: 244 240 255;
+    --ink-soft: 185 176 218;
+    --jelly: 163 151 255;
+    --pink: 255 159 196;
+    --danger: 255 133 145;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme='dark'] {
+  --bg: 30 26 51;
+  --surface: 42 37 71;
+  --ink: 244 240 255;
+  --ink-soft: 185 176 218;
+  --jelly: 163 151 255;
+  --pink: 255 159 196;
+  --danger: 255 133 145;
+  color-scheme: dark;
+}
+
+@font-face {
+  font-family: 'Galmuri11';
+  src: url('/fonts/Galmuri11.woff2') format('woff2');
+  font-display: swap;
+}
+
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    @apply bg-bg font-body text-base text-ink;
+    word-break: keep-all;
+  }
+  h1,
+  h2,
+  h3 {
+    @apply font-title;
+  }
+  :focus-visible {
+    outline: 3px solid rgb(var(--jelly));
+    outline-offset: 2px;
+  }
+  .pixelated {
+    image-rendering: pixelated;
+  }
+}
+
+@layer utilities {
+  .text-on-pastel {
+    color: rgb(var(--on-pastel));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    transition-duration: 1ms !important;
+  }
+}
+
+/* 14.5 탭 전환: 선택된 탭이 통통 튐 (220ms) */
+@keyframes tab-pop {
+  0% { transform: translateY(0) scale(1); }
+  40% { transform: translateY(-3px) scale(1.08); }
+  100% { transform: translateY(0) scale(1); }
+}
