@@ -6,7 +6,7 @@
 
 ```bash
 npm install
-cp .env.example .env.local   # Supabase URL, anon key 채우기
+cp .env.example .env.local   # Supabase URL·anon key·service role key, ANTHROPIC_API_KEY 채우기
 npm run dev
 ```
 
@@ -39,10 +39,22 @@ npm run lint
 app/(auth)        로그인, 가입, 온보딩
 app/(student)     학생 화면 (하단 탭)
 app/auth          이메일 인증 콜백, 로그아웃
+app/api/ai        문제 생성(generate), 서술형 채점(grade)
 components/ui     스티커 카드, 젤리 버튼 등 (SPEC 15장)
+components/study  복습 세션, 확신도, 답 입력
 lib/supabase      브라우저·서버 클라이언트, proxy용 세션 갱신
 lib/auth          requireRole(), 라우팅 규칙, 입력 스키마
+lib/ai            Claude 호출, 프롬프트, 생성 결과 검증, 속도·하루 한도
+lib/srs           ts-fsrs 래퍼 (등급별 다음 상태, 기억 확률)
+lib/study         문제 생성·답 제출 흐름, 단원 진행 바
+lib/game          game_config 읽기 (1분 캐시)
 proxy.ts          Next.js 16 proxy(구 middleware): 세션 갱신 + 화면 가드
 supabase/         마이그레이션, 시드, 테스트용 shim
 tests/            unit, db
 ```
+
+## 채점과 복습 흐름
+
+1. `/study/new`에서 자료를 붙여 넣으면 `/api/ai/generate`가 한도를 확인하고, 같은 자료(해시)가 있으면 재사용, 없으면 Claude로 문제를 만든다. 결과는 zod로 검사하고 실패하면 1회만 재시도한다.
+2. 복습 세트는 `start_review_session`(SQL)이 만든다. 오답노트 카드 먼저, 나머지는 개념을 번갈아.
+3. 답을 내면 서버가 ts-fsrs로 등급별 다음 상태 4개를 계산해 `submit_answer`(SQL, service_role 전용)에 넘기고, SQL이 채점한 뒤 맞는 등급의 상태를 저장한다. 서술형은 `/api/ai/grade`가 루브릭 AI 채점 후 같은 함수로 기록한다.

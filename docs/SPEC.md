@@ -702,9 +702,9 @@ JSON만 출력: {"concepts":[...],"questions":[{"type":"mcq","concept":"","promp
 
 ### 2단계: 학습 핵심
 
-- [ ] 자료 올리기(텍스트 우선), /api/ai/generate, zod 검증, 하루 한도
-- [ ] 복습 세션 UI (확신도 → 답 → 피드백), submit_answer, ts-fsrs 연동
-- [ ] 오답노트, 단원 진행 바
+- [x] 자료 올리기(텍스트 우선), /api/ai/generate, zod 검증, 하루 한도
+- [x] 복습 세션 UI (확신도 → 답 → 피드백), submit_answer, ts-fsrs 연동
+- [x] 오답노트, 단원 진행 바
 - 완료 기준: 자료 붙여넣기 → 문제 생성 → 10문제 풀기 → 다음 날 복습 목록에 나타남(시계 조작 테스트)
 
 ### 3단계: 게임 시스템

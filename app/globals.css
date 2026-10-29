@@ -89,3 +89,22 @@
   40% { transform: translateY(-3px) scale(1.08); }
   100% { transform: translateY(0) scale(1); }
 }
+
+/* 14.5 정답: 1.04배로 튕김 / 오답: 좌우 6px 3회 흔들기 (300ms) */
+@keyframes answer-pop {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.04); }
+  100% { transform: scale(1); }
+}
+@keyframes answer-shake {
+  0%, 100% { transform: translateX(0); }
+  16%, 50%, 83% { transform: translateX(-6px); }
+  33%, 66% { transform: translateX(6px); }
+}
+@layer utilities {
+  .anim-pop { animation: answer-pop 300ms cubic-bezier(.34,1.56,.64,1); }
+  .anim-shake { animation: answer-shake 300ms linear; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .anim-pop, .anim-shake { animation: none; }
+}

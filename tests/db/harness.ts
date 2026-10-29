@@ -83,3 +83,17 @@ export async function asUser<T>(db: Db, uid: string | null, fn: () => Promise<T>
     throw error;
   }
 }
+
+/** 서버(service_role)로 fn을 실행한다. Route Handler·서버 액션이 쓰는 경로. */
+export async function asService<T>(db: Db, fn: () => Promise<T>): Promise<T> {
+  await db.query('begin');
+  try {
+    await db.query('set local role service_role');
+    const result = await fn();
+    await db.query('commit');
+    return result;
+  } catch (error) {
+    await db.query('rollback');
+    throw error;
+  }
+}
