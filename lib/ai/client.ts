@@ -2,8 +2,8 @@ import 'server-only';
 import Anthropic from '@anthropic-ai/sdk';
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { essayGradeSchema, generatedSetSchema, type EssayGrade, type GeneratedSet } from './schemas';
-import { GENERATE_SYSTEM, GRADE_SYSTEM, generateUserPrompt, gradeUserPrompt, retryPrompt } from './prompts';
+import { checkMergedNote, essayGradeSchema, generatedSetSchema, mergedNoteSchema, type EssayGrade, type GeneratedSet, type MergedNote } from './schemas';
+import { GENERATE_SYSTEM, GRADE_SYSTEM, MERGE_SYSTEM, generateUserPrompt, gradeUserPrompt, mergeUserPrompt, retryPrompt } from './prompts';
 
 // 모델 이름은 환경변수로 (11.3). 생성은 작은 모델, 서술형 채점만 상위 모델.
 const SMALL_MODEL = process.env.AI_MODEL_SMALL ?? 'claude-haiku-5-5';
@@ -108,4 +108,33 @@ export async function gradeEssay(
   const total = input.rubric.reduce((s, r) => s + r.score, 0);
   const earned = input.rubric.reduce((s, r, i) => s + (grade.met[i] ? r.score : 0), 0);
   return { ...grade, questions: grade.questions.slice(0, 2), score: total > 0 ? earned / total : 0 };
+}
+
+/** 그룹 자료 여러 개 → 통합 노트 (8.6). 작은 모델, 검증 실패 시 1회 재시도. */
+export async function mergeNotes(userId: string, input: { subject: string; title: string; sources: string[] }): Promise<MergedNote> {
+  const messages: Anthropic.MessageParam[] = [{ role: 'user', content: mergeUserPrompt(input) }];
+  let lastProblems: string[] = [];
+  for (let attempt = 0; attempt < 2; attempt++) {
+    let response;
+    try {
+      response = await anthropic().messages.parse({
+        model: SMALL_MODEL,
+        max_tokens: 16000,
+        system: MERGE_SYSTEM,
+        messages,
+        output_config: { format: zodOutputFormat(mergedNoteSchema) },
+      });
+    } catch (error) {
+      wrapApiError(error);
+    }
+    await recordUsage(userId, attempt === 0 ? 'merge' : 'merge_retry', SMALL_MODEL, response.usage);
+    if (response.stop_reason === 'refusal') throw new AiError('refused', '이 자료로는 노트를 만들 수 없어요.');
+    const parsed = response.stop_reason === 'max_tokens' ? null : response.parsed_output;
+    const checked = parsed ? checkMergedNote(parsed) : { ok: false as const, problems: ['출력이 형식에 맞지 않거나 잘렸습니다.'] };
+    if (checked.ok) return checked.value;
+    lastProblems = checked.problems;
+    messages.push({ role: 'assistant', content: response.content });
+    messages.push({ role: 'user', content: retryPrompt(checked.problems) });
+  }
+  throw new AiError('invalid_output', `통합 노트 검증 실패: ${lastProblems.join(' / ')}`);
 }

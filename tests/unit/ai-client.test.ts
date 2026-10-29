@@ -104,3 +104,15 @@ describe('gradeEssay', () => {
     await expect(gradeEssay('u1', { prompt: 'p', modelAnswer: 'm', rubric, answer: 'x' })).rejects.toMatchObject({ code: 'invalid_output' });
   });
 });
+
+describe('mergeNotes', () => {
+  it('빈 노트면 1회 재시도하고, 사용량 kind는 merge / merge_retry', async () => {
+    const { mergeNotes } = await import('@/lib/ai/client');
+    parse
+      .mockResolvedValueOnce(reply({ sections: [], differences: [] }))
+      .mockResolvedValueOnce(reply({ sections: [{ heading: 'h', points: ['p'] }], differences: [] }));
+    const note = await mergeNotes('u1', { subject: '과학', title: 't', sources: ['a', 'b'] });
+    expect(note.sections).toHaveLength(1);
+    expect(inserts.map((r) => (r as { kind: string }).kind)).toEqual(['merge', 'merge_retry']);
+  });
+});

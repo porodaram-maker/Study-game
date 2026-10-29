@@ -132,3 +132,29 @@ export const essayGradeSchema = z.object({
   questions: z.array(z.string()),
 });
 export type EssayGrade = z.infer<typeof essayGradeSchema>;
+
+// 통합 노트 (8.6)
+export const mergedNoteSchema = z.object({
+  sections: z.array(z.object({ heading: z.string(), points: z.array(z.string()) })),
+  differences: z.array(z.string()),
+});
+export type MergedNote = z.infer<typeof mergedNoteSchema>;
+
+/** AI 결과를 검사한다. 빈 노트나 지나치게 긴 항목은 거절. */
+export function checkMergedNote(note: MergedNote): { ok: true; value: MergedNote } | { ok: false; problems: string[] } {
+  const problems: string[] = [];
+  const sections = note.sections
+    .map((s) => ({ heading: s.heading.trim().slice(0, 60), points: s.points.map((p) => p.trim()).filter(Boolean) }))
+    .filter((s) => s.heading && s.points.length > 0);
+  if (sections.length === 0) problems.push('정리된 내용이 비어 있습니다.');
+  if (sections.length > 30) problems.push('소단원이 너무 많습니다. 30개 이하로 묶어 주세요.');
+  if (sections.some((s) => s.points.some((p) => p.length > 400))) problems.push('한 항목이 너무 깁니다. 400자 이하로 나눠 주세요.');
+  return problems.length ? { ok: false, problems } : { ok: true, value: { sections, differences: note.differences.map((d) => d.trim()).filter(Boolean) } };
+}
+
+/** 통합 노트를 문제 생성용 텍스트로 */
+export function noteToText(title: string, note: MergedNote): string {
+  const body = note.sections.map((s) => `## ${s.heading}\n${s.points.map((p) => `- ${p}`).join('\n')}`).join('\n\n');
+  const diff = note.differences.length ? `\n\n## 자료마다 다른 부분\n${note.differences.map((d) => `- ${d}`).join('\n')}` : '';
+  return `# ${title}\n\n${body}${diff}`;
+}
